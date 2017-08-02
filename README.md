@@ -1,7 +1,7 @@
 # ITS
 ITS
 
-prequisite:
+prequisite:  
 mist: https://github.com/ethereum/mist/releases  
 geth: https://github.com/ethereum/go-ethereum  
 
