@@ -7,4 +7,4 @@ in your shell
 run `geth --fast --rinkeby`  
 Luanch `mist`  
 
-deploy the contract
+deploy the contract  
