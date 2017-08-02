@@ -498,4 +498,4 @@ contract initialTeuTokenSale is Ownable {
     contribute();
   }
 
-} 
+}
