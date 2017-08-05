@@ -11,4 +11,7 @@ in your shell
   
 deploy the contracts  
 * `TEUToken`   
-* `initialTeuTokenSale`
+* `initialTeuTokenSale`  
+
+bug bounty campaign:
+ * https://300cubits.tech/pdf/bounty.pdf
