@@ -1,4 +1,4 @@
-pragma solidity 0.4.13;
+pragma solidity 0.4.14;
 
 /**
  * @title Ownable
@@ -255,20 +255,21 @@ contract TeuToken is StandardToken, Ownable{
 }
 
 /**
- * @title InitialTeuTokenSale
- * @dev The Initial TEU token sale contract
+ * @title teuTokenPreSale
+ * @dev The TEU token Presale contract
  * 
  */
-contract initialTeuTokenSale is Ownable {
+contract teuTokenPreSale is Ownable {
   using SafeMath for uint256;
   event LogPeriodStart(uint period);
   event LogCollectionStart(uint period);
   event LogContribution(address indexed contributorAddress, uint256 weiAmount, uint period);
   event LogCollect(address indexed contributorAddress, uint256 tokenAmount, uint period); 
 
+  uint                                           private  period1_contributionInterval;
   TeuToken                                       private  token; 
   mapping(uint => address)                       private  walletOfPeriod;
-  uint256                                        private  minContribution = 0.1 ether;
+  uint256                                        private  minContribution;
   uint                                           private  saleStart;
   bool                                           private  isTokenCollectable = false;
   mapping(uint => uint)                          private  periodStart;
@@ -282,33 +283,39 @@ contract initialTeuTokenSale is Ownable {
   
   uint public totalPeriod = 0;
   uint public currentPeriod = 0;
+  uint256 public maxTarget;
 
 
   /**
    * @dev Initialise the contract
    * @param _tokenAddress address of TEU token
    * @param _walletPeriod1 address of period 1 wallet
-   * @param _walletPeriod2 address of period 2 wallet
    * @param _tokenPoolPeriod1 amount of pool of token in period 1
-   * @param _tokenPoolPeriod2 amount of pool of token in period 2
    * @param _saleStartDate start date / time of the token sale
+   * @param _period1_contriInterval contribution period (in hours) of period 1
+   * @param _maxTarget maxTarget of all periods (in finney)
+   * @param _minContribution min contribution per transaction (in finney)
    */
   function initTokenSale (address _tokenAddress
-  , address _walletPeriod1, address _walletPeriod2
-  , uint256 _tokenPoolPeriod1, uint256 _tokenPoolPeriod2
-  , uint _saleStartDate) onlyOwner {
+  , address _walletPeriod1
+  , uint256 _tokenPoolPeriod1
+  , uint _saleStartDate
+  , uint _period1_contriInterval
+  , uint256 _maxTarget
+  , uint256 _minContribution) onlyOwner {
     assert(totalPeriod == 0);
     assert(_tokenAddress != address(0));
     assert(_walletPeriod1 != address(0));
-    assert(_walletPeriod2 != address(0));
     walletOfPeriod[1] = _walletPeriod1;
-    walletOfPeriod[2] = _walletPeriod2;
     periodTokenPool[1] = _tokenPoolPeriod1;
-    periodTokenPool[2] = _tokenPoolPeriod2;
     token = TeuToken(_tokenAddress);
-    assert(token.owner() == owner);
-    setPeriodStart(_saleStartDate);
- 
+    //assert(token.owner() == owner);    
+	period1_contributionInterval = _period1_contriInterval * 60 * 60;
+	setPeriodStart(_saleStartDate);
+	
+	maxTarget = _maxTarget * (10 ** 15);
+    minContribution = _minContribution * (10 ** 15);
+
   }
   
   
@@ -320,13 +327,7 @@ contract initialTeuTokenSale is Ownable {
     totalPeriod = 0;
     saleStart = _saleStartDate;
     
-    uint period1_contributionInterval = 14 days;
-    uint period1_collectionInterval = 14 days;
-    uint period2_contributionInterval = 7 days;
-    
     addPeriod(saleStart, saleStart + period1_contributionInterval);
-    addPeriod(saleStart + period1_contributionInterval + period1_collectionInterval, saleStart + period1_contributionInterval + period1_collectionInterval + period2_contributionInterval);
-
     currentPeriod = 1;    
   } 
   
@@ -405,12 +406,16 @@ contract initialTeuTokenSale is Ownable {
     require(msg.value >= minContribution);
     _;
   }
-  
+
+  modifier underMaxTarget() {
+    require(currentPeriod > 0 && (maxTarget == 0 || periodContribution[currentPeriod] + msg.value <= maxTarget));
+    _;
+  }  
   
   /**
    * @dev record the contribution of a contribution 
    */
-  function contribute() private saleIsOn overMinContribution {
+  function contribute() private saleIsOn overMinContribution underMaxTarget {
     contribution[currentPeriod][msg.sender] = contribution[currentPeriod][msg.sender].add256(msg.value);
     periodContribution[currentPeriod] = periodContribution[currentPeriod].add256(msg.value);
     assert(walletOfPeriod[currentPeriod].send(msg.value));
@@ -499,3 +504,5 @@ contract initialTeuTokenSale is Ownable {
   }
 
 }
+
+
