@@ -1,5 +1,5 @@
 # ITS
-ICO smart contracts for TEU ITS
+ICO smart contracts for TEU Pre-ITS
   
 prequisite:  
 * mist: https://github.com/ethereum/mist/releases  
@@ -11,7 +11,7 @@ in your shell
   
 deploy the contracts  
 * `TEUToken`   
-* `initialTeuTokenSale`  
+* `teuTokenPreSale`  
 
 bug bounty campaign:
  * https://300cubits.tech/pdf/bounty.pdf
